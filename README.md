@@ -1,4 +1,4 @@
-# Neonate
+# A First Compiler – Neonate
 
 Today we're going to implement a compiler.  It will be called Neonate, because
 it's fun to name things and the name will fit a theme in future weeks.
@@ -258,7 +258,7 @@ and we have the definition of our compiler.
 
 ## Is that it?
 
-Of course, this was effectively a bunch of boilerplate to get us to the point
+Of course, this “just” a bunch of boilerplate.  It got us to the point
 where we have an OCaml program that's defining our translation from input
 program to assembly code.  Our input programs are pretty boring, so those will
 need to get more sophisticated, and correspondingly the function `compile`
