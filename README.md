@@ -114,3 +114,51 @@ assembly code), and then we just need to know how to assemble and link it with
 the main we wrote.
 
 ## Hello, `nasm`
+
+We will be using a program called [nasm](http://www.nasm.us/) as our
+assembler, because it works well across a few platforms, and is simple to use.
+The main way we will use it is to take assembly (`.s`) files and turn them
+into object (`.o`) files that traditional compilers like `clang` or `gcc` can
+work with.  The command we'll use to build with nasm is:
+
+```
+⤇ nasm -f elf32 -o our_code.o our_code.s
+```
+
+This creates a file called `our_code.o` in [Executable and Linkable
+Format](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format).  We
+won't go into detail (yet, depending on what we have time for in the course)
+about this binary structure.  For our purposes, it's simply a version of the
+assembly we wrote that our particular operating system understands.
+
+Now we have a binary for our assembler, and we ought to be able to compile it
+into a binary along with a C source file just like any other object file
+generated from C.  For example:
+
+```
+⤇ clang -o our_code main.c our_code.o
+```
+
+But this gives an error:
+
+```
+/usr/bin/ld: i386 architecture of input file `our_code.o' is incompatible with i386:x86-64 output
+collect2: error: ld returned 1 exit status
+```
+
+This happens because the default (on the department machines) is to generate
+binaries for 64-bit x86, and we're targeting 32-bit x86.  So we need to tell
+`clang` that's what we want:
+
+```
+⤇ clang -m32 -o our_code main.c our_code.o
+```
+
+Now we can run our code:
+
+```
+⤇ ./our_code
+37
+```
+
+
