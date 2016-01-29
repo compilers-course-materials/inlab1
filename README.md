@@ -1,6 +1,9 @@
-# The Smallest Compiler
+# Neonate
 
-Today we're going to implement a compiler.  It will compile a very small
+Today we're going to implement a compiler.  It will be called Neonate, because
+it's fun to name things and the name will fit a theme in future weeks.
+
+It's not going to be terrifically useful, as it will only compile a very small
 language – integers.  That is, it will take a user program (a number), and
 create an executable binary that prints the number.  There are no files in
 this repository because the point of the lab is for you to see how this is
