@@ -67,7 +67,7 @@ clang: error: linker command failed with exit code 1 (use -v to see invocation)
 That's because it's our job to define `our_code_starts_here`.  That's what
 we'll do next.
 
-## Hello, NASM
+## Hello, x86
 
 Our next goal is to:
 
@@ -109,5 +109,8 @@ The pieces mean, line by line:
   in much more detail later, then jump to wherever the caller of
   `our_code_starts_here` left off.
 
+We can put this in a file called `our_code.s` (`.s` is a typical extension for
+assembly code), and then we just need to know how to assemble and link it with
+the main we wrote.
 
-
+## Hello, `nasm`
