@@ -18,11 +18,11 @@ input program and generates assembly code.  That leaves open a few questions:
 - How will the input program be handed to, and represented in, OCaml?
 - How will the generated assembly code be run?
 
-Our answer to the first question is going to be simple: we'll expect that all
-programs are files containing a single integer, so there's little
+Our answer to the first question is going to be simple for today: we'll expect
+that all programs are files containing a single integer, so there's little
 “front-end” for the compiler to consider.  Most of this lab is about the
 second question – how we take our generated assembly and meaningfully run it
-while balancing (a) avoiding the feeling that there's too much magic going on,
+while avoiding both (a) the feeling that there's too much magic going on,
 and (b) getting bogged down in system-level details that don't enlighten us
 about compilers.
 
@@ -36,7 +36,7 @@ function call.  This allows us to do a few things:
 
 - We can use a C program as the wrapper around our code, which makes it
   somewhat more cross-platform than it would be otherwise
-- We can defer some details to our C wrapper that we want to skip or defer
+- We can defer some details to our C wrapper that we want to skip or leave
   until later
 
 So, our wrapper will be a C program with a traditional main that calls a
@@ -55,11 +55,18 @@ int main(int argc, char** argv) {
 ```
 
 So right now, our compiled program had better return an integer, and our
-wrapper will handle printing it out for us.  We can put this in a file called
-`main.c`.  If we try to compile it, we get an error:
+wrapper will handle printing it out for us.  The syntax
+`asm("our_code_starts_here")` tells a compiler like `gcc` or `clang` to not do
+any platform-specific name-alterations, and to use the provided name exactly
+as it appears.  This makes it so the names that the compiler tries to find in
+object files don't vary across platforms (not something I'd recommended in
+general, but quite useful for our purposes).
+
+We can put this in a file called `main.c`.  If we try to compile it, we get an
+error:
 
 ```
-⤇ clang -o main main.c
+⤇ clang -g -o main main.c
 Undefined symbols for architecture x86_64:
   "our_code_starts_here", referenced from:
       _main in main-1a486d.o
@@ -75,7 +82,7 @@ we'll do next.
 Our next goal is to:
 
 - Write an assembly program that defines `our_code_starts_here`
-- Link that program with `main.c` so we can run it
+- Link that program with `main.c` and create an executable
 
 In order to write assembly, we need to pick a syntax and an instruction set.
 We're going to generate 32-bit x86 assembly, and use the so-called Intel
@@ -142,7 +149,7 @@ with a C source file just like any other object file generated from C.  For
 example:
 
 ```
-⤇ clang -o our_code main.c our_code.o
+⤇ clang -g -o our_code main.c our_code.o
 ```
 
 But this gives an error:
@@ -157,7 +164,7 @@ binaries for 64-bit x86, and we're targeting 32-bit x86.  So we need to tell
 `clang` that's what we want:
 
 ```
-⤇ clang -m32 -o our_code main.c our_code.o
+⤇ clang -g -m32 -o our_code main.c our_code.o
 ```
 
 Now we can run our code:
@@ -166,6 +173,9 @@ Now we can run our code:
 ⤇ ./our_code
 37
 ```
+
+Note that I will almost always include the `-g` option on uses of `clang`,
+because it's always handy to have debugging information turned on.
 
 ## Hello, Compiler
 
