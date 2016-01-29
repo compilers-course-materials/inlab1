@@ -131,9 +131,12 @@ won't go into detail (yet, depending on what we have time for in the course)
 about this binary structure.  For our purposes, it's simply a version of the
 assembly we wrote that our particular operating system understands.
 
-Now we have a binary for our assembler, and we ought to be able to compile it
-into a binary along with a C source file just like any other object file
-generated from C.  For example:
+If you are on OSX, you can use `-f macho` rather than `-f elf32`, which will
+produce an OSX-compatible object file.
+
+With this in hand, and we ought to be able to compile it into a binary along
+with a C source file just like any other object file generated from C.  For
+example:
 
 ```
 ⤇ clang -o our_code main.c our_code.o
@@ -161,4 +164,95 @@ Now we can run our code:
 37
 ```
 
+## Hello, Compiler
+
+With this pipeline in place, the only step left is to write an OCaml program
+that can generate assembly programs.  Then we can automate the process and get
+a pipeline from user program all the way to executable.
+
+A very simple compiler might just take the name of a file, and output the
+compiled assembly code on standard output.  Let's try that; here's a simple
+`compiler.ml` that takes a file as a command line argument, expects it to
+contain a single integer on one line, and generates the corresponding assembly
+code:
+
+```
+open Printf
+
+(* A very sophisticated compiler - insert the given integer into the mov
+instruction at the correct place *)
+let compile (program : int) : string =
+  sprintf "
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov eax, %d
+  ret\n" program;;
+
+(* Some OCaml boilerplate for reading files and command-line arguments *)
+let () =
+  let input_file = (open_in (Sys.argv.(1))) in
+  let input_program = int_of_string (input_line input_file) in
+  let program = (compile input_program) in
+  printf "%s\n" program;;
+```
+
+Put this into `compiler.ml`, and create another file `87.int` that
+contains just the number 87, then run:
+
+```
+⤇ ocaml compiler.ml 87.int
+
+section .text
+global our_code_starts_here
+our_code_starts_here:
+  mov eax, 87
+  ret
+```
+
+How exciting!  We can redirect the output to a file, and get an entire
+pipeline of compilation to work out:
+
+
+```
+⤇ ocaml compiler.ml 87.int > 87.s
+⤇ nasm -f elf32 -o 87.o 87.s
+⤇ clang -m32 -o 87.run main.c 87.o
+⤇ ./87.run
+87
+```
+
+If we like, we could capture this set of dependencies with a `make` rule:
+
+```
+%.run: %.o
+	clang -m32 -o $@ main.c $<
+
+%.o: %.s
+	nasm -f elf32 -o $@ $<
+
+%.s: %.int
+	ocaml compiler.ml $< > $@
+```
+
+If we put that in a `Makefile`, then we can just run:
+
+```
+⤇ make 87.run
+```
+
+and we have the definition of our compiler.
+
+## Is that it?
+
+Of course, this was effectively a bunch of boilerplate to get us to the point
+where we have an OCaml program that's defining our translation from input
+program to assembly code.  Our input programs are pretty boring, so those will
+need to get more sophisticated, and correspondingly the function `compile`
+will need to become more impressive.  That's where our focus will be in the
+coming weeks.
+
+In the meantime, you have a little compiler to play with.  Can you think of
+any other interesting input program formats to try, or tweaks to the generated
+output to play with?
 
